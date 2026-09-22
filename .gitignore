@@ -58,3 +58,7 @@ htmlcov/
 *.tmp
 *.bak
 *.backup
+
+# 构建产物（PyInstaller 打包输出）
+dist/
+build/
