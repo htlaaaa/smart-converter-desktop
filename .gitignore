@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# 虚拟环境
+venv/
+env/
+.venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# 日志
+logs/
+*.log
+
+# 敏感配置（密钥/token，请勿提交）
+config.json
+config.local.json
+config.ini
+*.env
+.env
+.env.local
+.env.*.local
+secrets/
+credentials/
+*.pem
+*.key
+
+# 数据库与缓存
+*.db
+*.sqlite
+*.sqlite3
+data/
+cache/
+
+# 测试
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# 临时文件
+*.tmp
+*.bak
+*.backup
