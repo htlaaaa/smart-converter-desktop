@@ -62,3 +62,15 @@ htmlcov/
 # 构建产物（PyInstaller 打包输出）
 dist/
 build/
+*.exe
+
+# 调试与诊断脚本（仅本地使用）
+debug_*.py
+debug_*.png
+diagnose_*.py
+explore_*.py
+test_*.py
+verify_*.py
+
+# PyInstaller 打包配置（按需提交）
+# *.spec

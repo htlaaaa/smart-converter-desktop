@@ -150,6 +150,30 @@ class GroupSendPage(ctk.CTkFrame):
 
         self.delay_slider.configure(command=lambda v: self.delay_label.configure(text=f"{int(float(v))}秒"))
 
+        # 静默模式
+        silent_frame = ctk.CTkFrame(options_frame, fg_color="transparent")
+        silent_frame.pack(fill="x", padx=15, pady=10)
+
+        self.silent_var = ctk.BooleanVar(value=True)
+        self.silent_checkbox = ctk.CTkCheckBox(
+            silent_frame,
+            text="静默发送（不抢占焦点，适合后台运行）",
+            font=ctk.CTkFont(size=14),
+            variable=self.silent_var,
+            onvalue=True,
+            offvalue=False
+        )
+        self.silent_checkbox.pack(side="left")
+
+        # 静默模式说明
+        self.silent_hint = ctk.CTkLabel(
+            silent_frame,
+            text="💡 静默模式不抢焦点，但需提前打开群窗口",
+            font=ctk.CTkFont(size=12),
+            text_color="gray"
+        )
+        self.silent_hint.pack(side="left", padx=(15, 0))
+
         # 发送按钮
         self.send_btn = ctk.CTkButton(
             container,
@@ -242,9 +266,13 @@ class GroupSendPage(ctk.CTkFrame):
             return
 
         # 确认对话框
+        silent_mode = self.silent_var.get()
+        mode_text = "静默模式（不抢焦点）" if silent_mode else "可见模式（会抢焦点）"
+
         result = messagebox.askyesno(
             "确认发送",
             f"即将发送消息到 {len(self.groups)} 个群\n\n"
+            f"模式：{mode_text}\n"
             f"延迟：{int(self.delay_slider.get())} 秒\n\n"
             f"请确保：\n"
             f"1. QQ 已登录\n"
@@ -261,12 +289,12 @@ class GroupSendPage(ctk.CTkFrame):
 
         thread = threading.Thread(
             target=self._send_thread,
-            args=(message, int(self.delay_slider.get()))
+            args=(message, int(self.delay_slider.get()), silent_mode)
         )
         thread.daemon = True
         thread.start()
 
-    def _send_thread(self, message: str, delay: int):
+    def _send_thread(self, message: str, delay: int, silent: bool = True):
         """发送线程"""
         try:
             # 初始化 sender
@@ -296,8 +324,8 @@ class GroupSendPage(ctk.CTkFrame):
                     text=f"正在发送到第 {c}/{t} 个群: {group}..."
                 ))
 
-                # 发送
-                if sender.send_to_qq_group(group, message):
+                # 发送（静默/可见模式）
+                if sender.send_to_qq_group(group, message, silent=silent):
                     success_count += 1
                 else:
                     failed_groups.append(group)
@@ -310,8 +338,9 @@ class GroupSendPage(ctk.CTkFrame):
 
             # 完成
             self.after(0, lambda: self.progress_bar.set(1.0))
+            mode_str = "静默" if silent else "可见"
             self.after(0, lambda: self.progress_label.configure(
-                text=f"发送完成！成功: {success_count}, 失败: {failed_count}"
+                text=f"发送完成！({mode_str}模式) 成功: {success_count}, 失败: {failed_count}"
             ))
             self.after(0, lambda: self.send_btn.configure(state="normal"))
 
@@ -324,11 +353,12 @@ class GroupSendPage(ctk.CTkFrame):
                         "\n\n💡 排查建议：\n"
                         "1. 确认目标群已在QQ中打开（不能最小化）\n"
                         "2. 确认群名完全匹配（可打开QQ窗口查看实际标题）\n"
-                        "3. 查看『异常日志』菜单了解详细原因"
+                        "3. 查看『异常日志』菜单了解详细原因\n"
+                        "4. 尝试切换到『可见模式』（关闭静默模式）"
                     )
                 self.after(0, lambda: messagebox.showwarning(
                     "发送完成",
-                    f"批量发送完成\n\n"
+                    f"批量发送完成 ({mode_str}模式)\n\n"
                     f"✓ 成功: {success_count}\n"
                     f"✗ 失败: {failed_count}\n\n"
                     f"失败的群:\n{failed_list}"
@@ -337,7 +367,7 @@ class GroupSendPage(ctk.CTkFrame):
             else:
                 self.after(0, lambda: messagebox.showinfo(
                     "发送完成",
-                    f"批量发送完成！\n\n"
+                    f"批量发送完成！({mode_str}模式)\n\n"
                     f"✓ 成功: {success_count}\n"
                     f"✗ 失败: 0"
                 ))
